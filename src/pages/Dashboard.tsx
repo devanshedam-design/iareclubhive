@@ -7,22 +7,24 @@ import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const { getMyClubs, getAdminClubs } = useClubs();
-  const { events } = useEvents();
+  const { profile, isAdmin } = useAuth();
+  const { getMyClubs, getAdminClubs, loading: clubsLoading } = useClubs();
+  const { events, loading: eventsLoading } = useEvents();
 
-  const myClubs = user?.role === 'admin' ? getAdminClubs() : getMyClubs();
+  const myClubs = isAdmin ? getAdminClubs() : getMyClubs();
   const upcomingEvents = events
     .filter((e) => new Date(e.date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 5);
 
+  const displayName = profile?.full_name?.split(' ')[0] || 'there';
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Welcome back, {user?.name?.split(' ')[0]}!</h1>
+        <h1 className="text-3xl font-bold">Welcome back, {displayName}!</h1>
         <p className="text-muted-foreground">
-          {user?.role === 'admin' 
+          {isAdmin 
             ? 'Manage your clubs and track event performance.'
             : 'Discover events and stay connected with your clubs.'}
         </p>
@@ -35,9 +37,9 @@ export default function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{myClubs.length}</div>
+            <div className="text-2xl font-bold">{clubsLoading ? '...' : myClubs.length}</div>
             <p className="text-xs text-muted-foreground">
-              {user?.role === 'admin' ? 'Clubs you manage' : 'Active memberships'}
+              {isAdmin ? 'Clubs you manage' : 'Active memberships'}
             </p>
           </CardContent>
         </Card>
@@ -48,7 +50,7 @@ export default function Dashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{upcomingEvents.length}</div>
+            <div className="text-2xl font-bold">{eventsLoading ? '...' : upcomingEvents.length}</div>
             <p className="text-xs text-muted-foreground">Events this month</p>
           </CardContent>
         </Card>
@@ -59,7 +61,7 @@ export default function Dashboard() {
             <Bell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">New this week</p>
           </CardContent>
         </Card>
@@ -70,7 +72,7 @@ export default function Dashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">85%</div>
+            <div className="text-2xl font-bold">--</div>
             <p className="text-xs text-muted-foreground">Attendance rate</p>
           </CardContent>
         </Card>
@@ -81,11 +83,13 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>Your Clubs</CardTitle>
             <CardDescription>
-              {user?.role === 'admin' ? 'Clubs you manage' : 'Clubs you are a member of'}
+              {isAdmin ? 'Clubs you manage' : 'Clubs you are a member of'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {myClubs.length === 0 ? (
+            {clubsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : myClubs.length === 0 ? (
               <p className="text-sm text-muted-foreground">No clubs yet. Join a club to get started!</p>
             ) : (
               <div className="space-y-3">
@@ -109,24 +113,26 @@ export default function Dashboard() {
             <CardDescription>Events happening soon</CardDescription>
           </CardHeader>
           <CardContent>
-            {upcomingEvents.length === 0 ? (
+            {eventsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : upcomingEvents.length === 0 ? (
               <p className="text-sm text-muted-foreground">No upcoming events.</p>
             ) : (
               <div className="space-y-3">
                 {upcomingEvents.map((event) => (
                   <Link
                     key={event.id}
-                    to={user?.role === 'admin' ? '/admin/events' : '/events'}
+                    to={isAdmin ? '/admin/events' : '/events'}
                     className="block rounded-lg border p-3 transition-colors hover:bg-accent"
                   >
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-medium">{event.title}</p>
                         <p className="text-sm text-muted-foreground">
-                          {format(new Date(event.date), 'MMM d, yyyy')} at {event.time}
+                          {format(new Date(event.date), 'MMM d, yyyy')}
                         </p>
                       </div>
-                      <Badge>{event.venue}</Badge>
+                      <Badge>{event.location}</Badge>
                     </div>
                   </Link>
                 ))}

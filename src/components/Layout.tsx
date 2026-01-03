@@ -2,7 +2,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Hexagon, LayoutDashboard, Users, Calendar, Settings, LogOut, Shield } from 'lucide-react';
+import { Hexagon, LayoutDashboard, Users, Calendar, Settings, LogOut } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const studentLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -18,16 +19,19 @@ const adminLinks = [
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { user, logout, switchRole } = useAuth();
+  const { profile, isAdmin, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const links = user?.role === 'admin' ? adminLinks : studentLinks;
+  const links = isAdmin ? adminLinks : studentLinks;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate('/login');
   };
+
+  const displayName = profile?.full_name || profile?.email || 'User';
+  const initials = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="flex min-h-screen">
@@ -63,24 +67,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <div className="border-t p-4 space-y-2">
           <div className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
-              {user?.name?.charAt(0) || 'U'}
-            </div>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={profile?.avatar_url || undefined} alt={displayName} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
             <div className="flex-1 truncate">
-              <p className="text-sm font-medium truncate">{user?.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
+              <p className="text-sm font-medium truncate">{displayName}</p>
+              <p className="text-xs text-muted-foreground capitalize">{isAdmin ? 'Admin' : 'Student'}</p>
             </div>
           </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start gap-2 text-muted-foreground"
-            onClick={() => switchRole(user?.role === 'admin' ? 'student' : 'admin')}
-          >
-            <Shield className="h-4 w-4" />
-            Switch to {user?.role === 'admin' ? 'Student' : 'Admin'}
-          </Button>
 
           <Button
             variant="ghost"

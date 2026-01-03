@@ -3,17 +3,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Bell, Users } from 'lucide-react';
+import { Calendar, Bell, Users, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { Club } from '@/types';
 
 export default function MyClubs() {
-  const { getMyClubs, clubs, joinClub } = useClubs();
+  const { getMyClubs, clubs, joinClub, loading } = useClubs();
   const myClubs = getMyClubs();
 
   const otherClubs = clubs.filter(
     (club) => !myClubs.some((mc) => mc.id === club.id)
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -50,7 +59,7 @@ export default function MyClubs() {
           {otherClubs.length === 0 ? (
             <Card>
               <CardContent className="py-10 text-center">
-                <p className="text-muted-foreground">You've joined all available clubs!</p>
+                <p className="text-muted-foreground">No clubs available to join.</p>
               </CardContent>
             </Card>
           ) : (
@@ -71,7 +80,7 @@ function ClubCard({
   isMember,
   onJoin,
 }: {
-  club: { id: string; name: string; description: string };
+  club: Club;
   isMember?: boolean;
   onJoin?: () => void;
 }) {
@@ -115,7 +124,7 @@ function ClubCard({
                     >
                       <p className="font-medium">{event.title}</p>
                       <p className="text-muted-foreground">
-                        {format(new Date(event.date), 'MMM d')} • {event.venue}
+                        {format(new Date(event.date), 'MMM d')} • {event.location}
                       </p>
                     </Link>
                   ))}

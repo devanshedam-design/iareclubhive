@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useClubs, useEvents } from '@/hooks/useData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,54 +8,75 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, MapPin, Users, Clock, Plus, Eye } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, Eye, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { Event } from '@/types';
 
 export default function AdminEvents() {
-  const { getAdminClubs } = useClubs();
-  const { events, createEvent, getEventRegistrations, refreshEvents } = useEvents();
+  const { getAdminClubs, loading: clubsLoading } = useClubs();
+  const { events, createEvent, getEventRegistrations, refreshEvents, loading: eventsLoading } = useEvents();
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [formData, setFormData] = useState({
-    clubId: '',
+    club_id: '',
     title: '',
     description: '',
     date: '',
-    time: '',
-    venue: '',
+    location: '',
     capacity: 50,
   });
 
   const adminClubs = getAdminClubs();
   const adminClubIds = adminClubs.map((c) => c.id);
-  const adminEvents = events.filter((e) => adminClubIds.includes(e.clubId));
+  const adminEvents = events.filter((e) => adminClubIds.includes(e.club_id));
 
   const getClubName = (clubId: string) => {
     return adminClubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
   };
 
-  const handleCreate = () => {
-    if (!formData.clubId || !formData.title || !formData.date || !formData.time || !formData.venue) {
+  const handleCreate = async () => {
+    if (!formData.club_id || !formData.title || !formData.date || !formData.location) {
       toast({ title: 'Error', description: 'Please fill all required fields.', variant: 'destructive' });
       return;
     }
 
-    createEvent(formData);
-    toast({ title: 'Event created!', description: 'Your event has been created successfully.' });
-    setIsCreateOpen(false);
-    setFormData({
-      clubId: '',
-      title: '',
-      description: '',
-      date: '',
-      time: '',
-      venue: '',
-      capacity: 50,
+    setCreating(true);
+    const result = await createEvent({
+      ...formData,
+      capacity: formData.capacity || null,
+      description: formData.description || null,
+      image_url: null,
     });
-    refreshEvents();
+    
+    if (result) {
+      toast({ title: 'Event created!', description: 'Your event has been created successfully.' });
+      setIsCreateOpen(false);
+      setFormData({
+        club_id: '',
+        title: '',
+        description: '',
+        date: '',
+        location: '',
+        capacity: 50,
+      });
+    } else {
+      toast({ title: 'Error', description: 'Could not create event.', variant: 'destructive' });
+    }
+    setCreating(false);
   };
+
+  const loading = clubsLoading || eventsLoading;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -80,7 +101,7 @@ export default function AdminEvents() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Club</Label>
-                <Select value={formData.clubId} onValueChange={(v) => setFormData({ ...formData, clubId: v })}>
+                <Select value={formData.club_id} onValueChange={(v) => setFormData({ ...formData, club_id: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a club" />
                   </SelectTrigger>
@@ -112,31 +133,21 @@ export default function AdminEvents() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Date</Label>
-                  <Input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Time</Label>
-                  <Input
-                    type="time"
-                    value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label>Date & Time</Label>
+                <Input
+                  type="datetime-local"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Venue</Label>
+                  <Label>Location</Label>
                   <Input
-                    value={formData.venue}
-                    onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     placeholder="e.g., Room 101"
                   />
                 </div>
@@ -150,8 +161,15 @@ export default function AdminEvents() {
                 </div>
               </div>
 
-              <Button onClick={handleCreate} className="w-full">
-                Create Event
+              <Button onClick={handleCreate} className="w-full" disabled={creating}>
+                {creating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Event'
+                )}
               </Button>
             </div>
           </DialogContent>
@@ -168,55 +186,67 @@ export default function AdminEvents() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {adminEvents.map((event) => {
-            const registrations = getEventRegistrations(event.id);
-            const isPast = new Date(event.date) < new Date();
-
-            return (
-              <Card key={event.id} className="flex flex-col">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <Badge variant="outline">{getClubName(event.clubId)}</Badge>
-                    <Badge variant={isPast ? 'secondary' : 'default'}>
-                      {isPast ? 'Completed' : 'Upcoming'}
-                    </Badge>
-                  </div>
-                  <CardTitle className="mt-2">{event.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">{event.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    {format(new Date(event.date), 'MMM d, yyyy')}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    {event.time}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    {event.venue}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{registrations.length}</span>
-                    <span className="text-muted-foreground">/ {event.capacity} registered</span>
-                  </div>
-
-                  <div className="pt-4">
-                    <Button asChild variant="outline" className="w-full">
-                      <Link to={`/admin/reports?event=${event.id}`}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        View Details
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {adminEvents.map((event) => (
+            <EventCard key={event.id} event={event} getClubName={getClubName} getEventRegistrations={getEventRegistrations} />
+          ))}
         </div>
       )}
     </div>
+  );
+}
+
+function EventCard({ 
+  event, 
+  getClubName, 
+  getEventRegistrations 
+}: { 
+  event: Event; 
+  getClubName: (id: string) => string;
+  getEventRegistrations: (eventId: string) => Promise<any[]>;
+}) {
+  const [registrationCount, setRegistrationCount] = useState(0);
+  const isPast = new Date(event.date) < new Date();
+
+  useEffect(() => {
+    getEventRegistrations(event.id).then((regs) => setRegistrationCount(regs.length));
+  }, [event.id, getEventRegistrations]);
+
+  return (
+    <Card className="flex flex-col">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <Badge variant="outline">{getClubName(event.club_id)}</Badge>
+          <Badge variant={isPast ? 'secondary' : 'default'}>
+            {isPast ? 'Completed' : 'Upcoming'}
+          </Badge>
+        </div>
+        <CardTitle className="mt-2">{event.title}</CardTitle>
+        <CardDescription className="line-clamp-2">{event.description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 space-y-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4" />
+          {format(new Date(event.date), 'MMM d, yyyy h:mm a')}
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4" />
+          {event.location}
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <span className="font-medium">{registrationCount}</span>
+          <span className="text-muted-foreground">/ {event.capacity || '∞'} registered</span>
+        </div>
+
+        <div className="pt-4">
+          <Button asChild variant="outline" className="w-full">
+            <Link to={`/admin/reports?event=${event.id}`}>
+              <Eye className="mr-2 h-4 w-4" />
+              View Details
+            </Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
