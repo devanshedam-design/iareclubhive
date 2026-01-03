@@ -12,6 +12,7 @@ import Events from "@/pages/Events";
 import AdminClubs from "@/pages/admin/AdminClubs";
 import AdminEvents from "@/pages/admin/AdminEvents";
 import AdminReports from "@/pages/admin/AdminReports";
+import AdminAttendance from "@/pages/admin/AdminAttendance";
 import Profile from "@/pages/Profile";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -58,6 +59,7 @@ function AppRoutes() {
       <Route path="/admin/clubs" element={<ProtectedRoute requireAdmin><AdminClubs /></ProtectedRoute>} />
       <Route path="/admin/events" element={<ProtectedRoute requireAdmin><AdminEvents /></ProtectedRoute>} />
       <Route path="/admin/reports" element={<ProtectedRoute requireAdmin><AdminReports /></ProtectedRoute>} />
+      <Route path="/admin/events/:id/attendance" element={<ProtectedRoute requireAdmin><AdminAttendance /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<NotFound />} />

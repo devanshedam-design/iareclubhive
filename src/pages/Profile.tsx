@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Mail, Shield, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function Profile() {
     const { profile, user, isAdmin, refreshProfile } = useAuth();
@@ -80,9 +81,14 @@ export default function Profile() {
                                 <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
                             </Avatar>
                         </div>
-                        <CardTitle>{displayName}</CardTitle>
-                        <CardDescription className="capitalize">{isAdmin ? 'Administrator' : 'Student Member'}</CardDescription>
-                    </CardHeader>
+                                            <CardTitle>{displayName}</CardTitle>
+                                            <CardDescription className="capitalize">{isAdmin ? 'Administrator' : 'Student Member'}</CardDescription>
+                                            {user?.id && (
+                                                <div className="flex flex-col items-center justify-center p-4">
+                                                    <QRCodeSVG value={user.id} size={128} level="H" />
+                                                    <p className="text-xs text-muted-foreground mt-2">Scan this QR to mark attendance</p>
+                                                </div>
+                                            )}                    </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center gap-3 text-sm text-muted-foreground">
                             <Mail className="h-4 w-4" />

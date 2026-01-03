@@ -238,11 +238,17 @@ function EventCard({
           <span className="text-muted-foreground">/ {event.capacity || '∞'} registered</span>
         </div>
 
-        <div className="pt-4">
-          <Button asChild variant="outline" className="w-full">
+        <div className="pt-4 flex gap-2">
+          <Button asChild variant="outline" className="flex-1">
             <Link to={`/admin/reports?event=${event.id}`}>
               <Eye className="mr-2 h-4 w-4" />
               View Details
+            </Link>
+          </Button>
+          <Button asChild className="flex-1">
+            <Link to={`/admin/events/${event.id}/attendance`}>
+              <Users className="mr-2 h-4 w-4" />
+              Manage Attendance
             </Link>
           </Button>
         </div>
