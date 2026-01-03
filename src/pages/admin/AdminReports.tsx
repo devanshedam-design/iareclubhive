@@ -47,9 +47,9 @@ export default function AdminReports() {
       totalRegistrations: registrations.length,
       attendees: registrations.map((r) => {
         const profile = getProfile(r.user_id);
-        return { 
-          name: profile?.full_name, 
-          email: profile?.email, 
+        return {
+          name: profile?.full_name,
+          email: profile?.email,
           registeredAt: r.registered_at,
           attended: r.attended
         };

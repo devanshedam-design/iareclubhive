@@ -158,14 +158,7 @@ export function useEvents(clubId?: string) {
     getMyRegistration,
     getEventRegistrations,
     refreshEvents: loadEvents,
-    refreshRegistrations: loadMyRegistrations,
-    markAttendance: async (registrationId: string) => {
-      const { error } = await supabase
-        .from('event_registrations')
-        .update({ attended: true })
-        .eq('id', registrationId);
-      return !error;
-    }
+    refreshRegistrations: loadMyRegistrations
   };
 }
 
