@@ -20,7 +20,9 @@ export type Database = {
           content: string
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           id: string
+          image_url: string | null
           title: string
         }
         Insert: {
@@ -28,7 +30,9 @@ export type Database = {
           content: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           id?: string
+          image_url?: string | null
           title: string
         }
         Update: {
@@ -36,7 +40,9 @@ export type Database = {
           content?: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           id?: string
+          image_url?: string | null
           title?: string
         }
         Relationships: [
@@ -117,6 +123,7 @@ export type Database = {
       event_registrations: {
         Row: {
           attended: boolean | null
+          checked_in_at: string | null // Added
           event_id: string
           id: string
           registered_at: string
@@ -124,6 +131,7 @@ export type Database = {
         }
         Insert: {
           attended?: boolean | null
+          checked_in_at?: string | null // Added
           event_id: string
           id?: string
           registered_at?: string
@@ -131,6 +139,7 @@ export type Database = {
         }
         Update: {
           attended?: boolean | null
+          checked_in_at?: string | null // Added
           event_id?: string
           id?: string
           registered_at?: string
@@ -155,9 +164,9 @@ export type Database = {
           date: string
           description: string | null
           id: string
-          image_url: string | null
           is_completed: boolean
           location: string
+          poster_url: string | null
           title: string
           updated_at: string
         }
@@ -169,9 +178,9 @@ export type Database = {
           date: string
           description?: string | null
           id?: string
-          image_url?: string | null
           is_completed?: boolean
           location: string
+          poster_url?: string | null
           title: string
           updated_at?: string
         }
@@ -183,9 +192,9 @@ export type Database = {
           date?: string
           description?: string | null
           id?: string
-          image_url?: string | null
           is_completed?: boolean
           location?: string
+          poster_url?: string | null
           title?: string
           updated_at?: string
         }

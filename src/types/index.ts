@@ -45,7 +45,7 @@ export interface Event {
   date: string;
   location: string;
   capacity: number | null;
-  image_url: string | null;
+  poster_url: string | null;
   is_completed: boolean;
   created_by: string | null;
   created_at: string;
@@ -58,6 +58,7 @@ export interface EventRegistration {
   user_id: string;
   registered_at: string;
   attended: boolean;
+  checked_in_at: string | null;
 }
 
 export interface Announcement {
@@ -65,6 +66,8 @@ export interface Announcement {
   club_id: string;
   title: string;
   content: string;
+  image_url: string | null;
   created_by: string | null;
   created_at: string;
+  deleted_at: string | null;
 }

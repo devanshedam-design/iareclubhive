@@ -28,7 +28,7 @@ export default function AdminEvents() {
     date: '',
     location: '',
     capacity: 50,
-    image_url: '',
+    poster_url: '',
   });
 
   const adminClubs = getAdminClubs();
@@ -46,13 +46,13 @@ export default function AdminEvents() {
     }
 
     setCreating(true);
-    let imageUrl = formData.image_url;
+    let posterUrl = formData.poster_url;
 
     const result = await createEvent({
       ...formData,
       capacity: formData.capacity || null,
       description: formData.description || null,
-      image_url: imageUrl || null,
+      poster_url: posterUrl || null,
       is_completed: false,
     });
 
@@ -66,7 +66,7 @@ export default function AdminEvents() {
         date: '',
         location: '',
         capacity: 50,
-        image_url: '',
+        poster_url: '',
       });
     } else {
       toast({ title: 'Error', description: 'Could not create event.', variant: 'destructive' });
@@ -146,8 +146,8 @@ export default function AdminEvents() {
                     <ImageIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       className="pl-9"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      value={formData.poster_url}
+                      onChange={(e) => setFormData({ ...formData, poster_url: e.target.value })}
                       placeholder="Image URL"
                     />
                   </div>
@@ -163,7 +163,7 @@ export default function AdminEvents() {
                           setCreating(true);
                           const url = await uploadEventPoster(file);
                           if (url) {
-                            setFormData({ ...formData, image_url: url });
+                            setFormData({ ...formData, poster_url: url });
                             toast({ title: 'Image uploaded', description: 'Poster uploaded successfully.' });
                           } else {
                             toast({ title: 'Upload failed', description: 'Could not upload image.', variant: 'destructive' });
@@ -247,6 +247,7 @@ export default function AdminEvents() {
               getEventRegistrations={getEventRegistrations}
               deleteEvent={deleteEvent}
               updateEvent={updateEvent}
+              uploadEventPoster={uploadEventPoster}
             />
           ))}
         </div>
@@ -260,7 +261,8 @@ function EventCard({
   getClubName,
   getEventRegistrations,
   deleteEvent,
-  updateEvent
+  updateEvent,
+  uploadEventPoster
 }: {
   event: Event;
   getClubName: (id: string) => string;
@@ -279,7 +281,7 @@ function EventCard({
     date: event.date.slice(0, 16),
     location: event.location,
     capacity: event.capacity || 50,
-    image_url: event.image_url || '',
+    poster_url: event.poster_url || '',
   });
   const { toast } = useToast();
 
@@ -306,7 +308,7 @@ function EventCard({
       ...editFormData,
       capacity: editFormData.capacity || null,
       description: editFormData.description || null,
-      image_url: editFormData.image_url || null,
+      poster_url: editFormData.poster_url || null,
     });
     if (success) {
       toast({ title: 'Event updated', description: 'Changes saved successfully.' });
@@ -331,10 +333,10 @@ function EventCard({
 
   return (
     <Card className="flex flex-col overflow-hidden h-full">
-      {event.image_url && (
+      {event.poster_url && (
         <div className="h-48 w-full relative overflow-hidden">
           <img
-            src={event.image_url}
+            src={event.poster_url}
             alt={event.title}
             className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
           />
@@ -346,7 +348,7 @@ function EventCard({
         </div>
       )}
       <CardHeader>
-        {!event.image_url && (
+        {!event.poster_url && (
           <div className="flex items-start justify-between">
             <Badge variant="outline">{getClubName(event.club_id)}</Badge>
             <Badge variant={event.is_completed ? 'secondary' : isPast ? 'secondary' : 'default'}>
@@ -354,7 +356,7 @@ function EventCard({
             </Badge>
           </div>
         )}
-        {event.image_url && <Badge variant="outline" className="w-fit">{getClubName(event.club_id)}</Badge>}
+        {event.poster_url && <Badge variant="outline" className="w-fit">{getClubName(event.club_id)}</Badge>}
         <CardTitle className="mt-2 line-clamp-1">{event.title}</CardTitle>
         <CardDescription className="line-clamp-2">{event.description}</CardDescription>
       </CardHeader>
@@ -423,8 +425,8 @@ function EventCard({
                       <ImageIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         className="pl-9"
-                        value={editFormData.image_url}
-                        onChange={(e) => setEditFormData({ ...editFormData, image_url: e.target.value })}
+                        value={editFormData.poster_url}
+                        onChange={(e) => setEditFormData({ ...editFormData, poster_url: e.target.value })}
                         placeholder="Image URL"
                       />
                     </div>
@@ -440,7 +442,7 @@ function EventCard({
                             setIsUpdating(true);
                             const url = await uploadEventPoster(file);
                             if (url) {
-                              setEditFormData({ ...editFormData, image_url: url });
+                              setEditFormData({ ...editFormData, poster_url: url });
                               toast({ title: 'Image uploaded', description: 'New poster uploaded successfully.' });
                             } else {
                               toast({ title: 'Upload failed', description: 'Could not upload image.', variant: 'destructive' });

@@ -80,10 +80,10 @@ export default function Events() {
 
             return (
               <Card key={event.id} className="flex flex-col overflow-hidden">
-                {event.image_url && (
+                {event.poster_url && (
                   <div className="h-48 w-full relative overflow-hidden">
                     <img
-                      src={event.image_url}
+                      src={event.poster_url}
                       alt={event.title}
                       className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
                     />
@@ -99,7 +99,7 @@ export default function Events() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <Badge variant="outline">{getClubName(event.club_id)}</Badge>
-                    {isRegistered && !event.image_url && (
+                    {isRegistered && !event.poster_url && (
                       <Badge className="bg-green-600">
                         <Check className="mr-1 h-3 w-3" /> Registered
                       </Badge>
